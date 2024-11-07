@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>  
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='for_login.css') }}">
+</head>
+<body>
+    {% if session.get('login') %}
+        <h1 id="ERROR_MESSAGE">Ви вже авторизовані</h1>
+        <a class="button" href="{{url_for('main_f')}}">Форум</a>
+        <a class="button" href="{{url_for('profile')}}">Профіль</a>
+    {% else %}
+
+        <a class="button" href="{{url_for('main_f')}}">Форум</a>
+        <a class="button" href="{{url_for('profile')}}">Профіль</a>
+        <div class="form-container">
+            <H1 id="label_1">Welcome</H1>
+            <h1 class="label_1" id="welcom_2">Ввійдіть у ваш акаунт</h1>
+            <form method="POST">
+                <label class="label_1" for="login">Логін: </label>
+                <input class="input_1" type="text" name="login" id="login">
+                <br>
+                <label class="label_1" for="password">Пароль: </label>
+                <input class="input_1" type="password" name="password">
+                <br>
+                <button class="button_1" type="submit">Увійти</button>
+                <br>
+                <label id="label_2" class="label_1">У вас немає FFIP акаунту?</label>
+                <a id="button_3" href="{{url_for('signup')}}">Зареєструватися</a>
+            </form>
+        </div>
+    {% endif %}
+</body>
+</html>

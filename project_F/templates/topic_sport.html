@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sport</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sport_topic.css') }}">
+</head>
+<body>
+    
+    <header>
+        <a class="button" href="{{url_for('main_f')}}">Форум</a>
+        <span class="ffip-title">FFIP</span> <a class="button" href="{{url_for('profile')}}">Профіль</a>
+    </header>
+
+
+
+    <main>
+        <form method="POST", action="sended_message_to_sport">
+            <ul>
+            {% for message in Messages %}
+            <li>
+                <b>{{ message.user_login }}</b>: {{ message.message }} ({{ message.message_time }})
+            </li>
+            {% endfor %}
+            </ul>
+    
+            <input required id = 'message_input' type="text" name="message_input" placeholder="Введіть ваше повідомлення">
+            <button type="submit" id = 'Submit_button'>Відправити</button>
+        </form>
+    </main>    
+
+
+
+
+    <script>
+        const registerButton = document.getElementById('Submit_button');
+
+    registerButton.addEventListener('click', () => {
+    // Відправляємо POST-запит на сервер
+    fetch('/sended_message_to_sport', {
+        method: 'POST'  
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Повідомлення успішно надіслано');
+        } else {
+            console.error('Помилка при надсиланні повідомлення');
+        }
+    })
+    .catch(error => {
+        console.error('Помилка:', error);
+    });
+});
+</script>
+
+</body>
+</html>

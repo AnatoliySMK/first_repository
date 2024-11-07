@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>  
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='for_profile.css') }}">
+
+
+</head>
+<body>
+    <div class="profile-container">
+        {% if session.get('login') %}
+        <h1> Ласкаво просимо, {{ Login }}! </h1>
+        <p>Дата вашої реєстрації: {{ Reg_data }} UTC</p>
+        <form method="POST" action="register_ip">
+            <a href="{{url_for('main_f')}}" class="btn" id="user_registerButton">Форум</a>
+            <a href="{{url_for('logout')}}" class="btn">Вийти</a>
+        </form>
+        {% else %}
+        <h1 class="welcome">Ласкаво просимо, гостю!</h1>
+        <div class="buttons">
+            <form method="POST" action="/register_anonim_ip">
+                <a href="{{url_for('main_f')}} " class="btn" id="registerButton">Форум</a>
+                <a href="{{url_for('signup')}}" class="btn">Зареєструватися</a>
+                <a href="{{url_for('login')}}" class="btn">Ввійти</a>
+            </form>
+            
+        </div>
+        <p class="description">Це анонімний режим, користуючись ним інші користувачі не знатимуть хто їм відповідає</p>
+        <img id="anonim_photo" src="/static/Default_anonim_0.jpg" alt="Аватар користувача">
+        {% endif %}
+        
+    </div>
+    <script>
+            const registerButton = document.getElementById('registerButton');
+
+        registerButton.addEventListener('click', () => {
+        // Відправляємо POST-запит на сервер
+        fetch('/register_anonim_ip', {
+            method: 'POST'  
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('IP зареєстровано успішно');
+            } else {
+                console.error('Помилка при реєстрації IP');
+            }
+        })
+        .catch(error => {
+            console.error('Помилка:', error);
+        });
+    });
+    </script>
+    
+    <script>
+            const user_registerButton = document.getElementById('user_registerButton');
+
+        user_registerButton.addEventListener('click', () => {
+        // Відправляємо POST-запит на сервер
+        fetch('/register_ip', {
+            method: 'POST'  
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('IP зареєстровано успішно');
+            } else {
+                console.error('Помилка при реєстрації IP');
+            }
+        })
+        .catch(error => {
+            console.error('Помилка:', error);
+        });
+    });
+</script>
+</body>
+</html>
+

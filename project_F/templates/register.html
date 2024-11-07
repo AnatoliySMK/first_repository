@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, forum,interesting">
+    <title>Welcom to FFIP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='for_registretration.css') }}">
+</head>
+<body>
+    {% if session.get('login') %}
+        <span> {{ session['login'] }}</span>
+        <a class="button1" href="{{url_for('main_f')}}">Форум</a>
+        <a class="button2" href="{{url_for('login')}}">Ввійти</a>
+    {% else %}
+        <a class="button_new2" href="{{url_for('profile')}}" > Анонімний профіль</a>
+     
+
+        <form method="post" class="form-container">
+            <label for="login">ЛОГІН:</label>
+            <input type="text" id="login" name="login" placeholder="Введіть логін" required maxlength="12" title="До 12 символів">
+            <label for="password">ПАРОЛЬ:</label>
+            <input type="password" id="password" name="password" placeholder="Введіть пароль" required maxlength="24" title="До 24 символів">
+            <label for="confirm_password">ПІДТВЕРДІТЬ ПАРОЛЬ:</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Підтвердіть пароль" required maxlength="24" title="Підтвердіть пароль ввівши його ще раз">
+            <button type="submit">Зареєструватися</button>
+            <label>Ви вже маєте акаунт FFIP?</label>
+            <a href="{{url_for('login')}}" class="button_new">Ввійти</a>
+        </form>
+
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,77 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif; /* Choose a suitable font */
+}
+
+.button {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;  
+ /* Add smooth hover effect */
+}
+
+.button:hover{
+    background-color: #444; /* Change hover color */
+}
+
+header {
+    display: flex;
+    justify-content: space-between; /* Align buttons to the right */
+    background-color: #f0f0f0; /* Add a header background */
+    padding: 10px;
+}
+
+main {
+    max-width: 800px; /* Set a maximum width for the main content */
+    margin: 0 auto; /* Center the main content */
+    padding: 20px;
+}
+
+ul {
+    list-style: none; /* Remove default list markers */
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px; /* Add spacing between list items */
+}
+
+b {
+    font-weight: bold; /* Make user names bold */
+}
+
+#message_input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#Submit_button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#Submit_button:hover {
+    background-color:  
+ #0069d9;
+}
+
+/* ... ваш існуючий CSS код ... */
+
+.ffip-title {
+    margin: 0 10px; /* Додаємо відступи зліва і справа */
+    font-weight: bold; /* Робимо шрифт жирним */
+    font-size: 35px;
+}

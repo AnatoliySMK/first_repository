@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FFIP</title>   
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='main_f.css') }}">
+</head>
+<body>
+    <header id="header">
+        <div id="header-left">
+            <a class="button" id="profile_button" href="{{ url_for('profile') }}">Профіль</a>
+        </div>
+        <div id="header-center">
+            <h1>Welcome to FFIP - Forum For Interesting People</h1>
+        </div>
+        <div id="header-right">
+            <a class="button" id="signout_button" href="{{ url_for('logout') }}">Вийти</a>
+        </div>
+    </header>
+
+    <main id="main">
+        <form action="POST" id="main_form">
+            <a class="button2" href="{{ url_for('topic_sport') }}">Спорт</a>
+            <br>
+            <a class="button2" href="{{ url_for('topic_games') }}">Відео ігри</a>
+            <br>
+            <a class="button2" href="{{ url_for('topic_upgrade_FFIP') }}">Ідеї вдосконалення FFIP</a>
+        </form>
+    </main>
+
+
+    <footer id="footer">
+        <a id="Created_info">Creator: SAS , Created: 08.10.2024</a>
+        <a id="Litsensia">All rights reserved</a>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,73 @@
+
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f0f0f0;
+}
+
+#header-left, #header-right {
+    flex: 1;
+    text-align: center;
+}
+
+.button {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#header-center {
+    flex: 2;
+}
+
+
+#main {
+    padding: 20px;
+
+}
+
+
+.button2 {
+    background-color: #4CAF50; /* Зелений колір кнопки */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 40px 2px;
+    cursor: pointer;
+    position: relative;
+    left: 40%;
+    border-radius: 5px;
+}
+
+
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+
+#main {
+    margin: 0 auto;
+    width: 80%; 
+}
+
+#footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #f0f0f0;
+    padding: 3px;
+    text-align: center;
+}
