@@ -1,7 +1,7 @@
 from flask import *
-import sqlite3
+import psycopg2
 import datetime as dt
-
+import psycopg2.extras
 
 
 
@@ -9,17 +9,22 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = '12343212'
 
-def getConnection():
-    conn = sqlite3.connect('forum_data_base.db')
-    conn.row_factory = sqlite3.Row #для того, щоб можна було звертатись до полів за іменами
-    return conn
+def make_connection():
+    return psycopg2.connect(
+        host = "127.0.0.1",
+        user = "postgres",
+        password = "88005553535",
+        dbname = "forum_database",
+        port = 5432)
+
+
 
 
 #Створення сторінки профіль
 @app.route('/')
 def profile():    #Назва функції в вказуванні шляху має бути унікальна
     login = session.get('login') #Інфа про людину яка зайшла на сайт
-    register_data = session.get('UTC_regdata')
+    register_data = session.get('utc_regdata')
     return render_template('profile.html', Login = login , Reg_data = register_data ) #render_template - відображення html шаблону
 
 
@@ -32,18 +37,22 @@ def login():
         login = request.form['login']
         alpha_user_login = login
         password = request.form['password']
-        conn = getConnection()
-        user = conn.execute('SELECT * FROM Register_user_data WHERE login = ? AND password = ?',(login,password)).fetchone()
+        conn = make_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor) #Створення курсор з конфігурацією словника 
+        cursor.execute('SELECT * FROM register_user_data WHERE user_login = %s AND user_password = %s',(login,password))#Знаходження відповідного ключа зі значенням
+        user = cursor.fetchone() #Якщо вихід з цієї умови вірний (знайдеться підходящий login та password), то сама змінна буде True
+        conn.commit()
         conn.close()
         if user:
-            session['login'] = user['login']
+            session['login'] = user['user_login']
             user_login = alpha_user_login
-            session['UTC_regdata'] = user['UTC_regdata']
+            session['utc_regdata'] = user['utc_user_regdata']
             return redirect(url_for('profile'))
         else:
             flash('НЕВІРНИЙ ЛОГІН АБО ПАРОЛЬ')
             return redirect(url_for('login'))
-        
+
+
     
     return render_template('login.html')#відображення html шаблону
 
@@ -63,18 +72,23 @@ def signup():       #Функція для входу (Реєстрація)
         if password != confimPassword:
             flash("Паролі не співпадають!")
             return redirect(url_for('signup')) #Переадрисація на функцію
-        conn = getConnection()
-        user = conn.execute('SELECT * FROM Register_user_data WHERE login = ?', (login,)).fetchone() #fetchone() - переводить рядок елементів данних в кортеж
+        conn = make_connection()
+        cursor = conn.cursor()
+        user = cursor.execute('SELECT * FROM register_user_data WHERE user_login = %s',(login,)) #fetchone() - переводить рядок елементів данних в кортеж
+        user = cursor.fetchone()
         if user:
             flash('Логін вже зайнятий :3')
             conn.close()
             return redirect(url_for('signup'))
         register_data = dt.datetime.utcnow()
         UTC_reg_data = register_data.strftime("%Y-%m-%d %H:%M:%S")
-        conn.execute('INSERT INTO Register_user_data (login, password, UTC_regdata) VALUES (?, ?, ?)', (login, password,UTC_reg_data))
+        user_ip = request.remote_addr
+        cursor.execute(
+            'INSERT INTO register_user_data (user_login, user_password, user_ip, utc_user_regdata) VALUES (%s, %s, %s, %s)',
+                (login, password,user_ip,UTC_reg_data))
         conn.commit() #Зберігаємо базу данних
         conn.close()
-        flash("Реєстрація successful. Welcome") #Виведення на екрані з верху
+        flash("Registration successful. Welcome") #Виведення на екрані з верху
         return redirect(url_for('login'))
     return render_template('register.html')
 
@@ -85,8 +99,6 @@ def signup():       #Функція для входу (Реєстрація)
 
 @app.route('/main_f', methods = ['GET','POST'])
 def main_f():
-    
-    
     return render_template('main_f.html')
 
 
@@ -103,7 +115,8 @@ def main_f():
 @app.route('/topic_sport', methods=['GET', 'POST'])
 def topic_sport():
 
-    conn = getConnection()
+    conn = make_connection()
+    cursor = conn.cursor()
     # Об'єднаний запит для отримання всіх даних
     query = """
         SELECT message, message_id, message_time, user_login
@@ -138,7 +151,7 @@ def sended_message_to_sport():
         message_sended_time = dt.datetime.utcnow()
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
         conn = getConnection()
-        conn.execute('INSERT INTO sport_topic_bd (user_login, message, message_time) VALUES (?, ?, ?)', (user_sended_message, message, UTC_message_sended_time))
+        conn.execute('INSERT INTO sport_topic_bd (user_login, message, message_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
         return redirect(url_for('topic_sport'))
@@ -185,7 +198,7 @@ def sended_message_to_games():
         message_sended_time = dt.datetime.utcnow()
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
         conn = getConnection()
-        conn.execute('INSERT INTO game_topic_bd (user_login, message, message_time) VALUES (?, ?, ?)', (user_sended_message, message, UTC_message_sended_time))
+        conn.execute('INSERT INTO game_topic_bd (user_login, message, message_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
         return redirect(url_for('topic_games'))
@@ -234,7 +247,7 @@ def sended_message_to_upgrade_FFIP():
         message_sended_time = dt.datetime.utcnow()
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
         conn = getConnection()
-        conn.execute('INSERT INTO FFIP_upgrades_topic_bd (user_login, message, message_time) VALUES (?, ?, ?)', (user_sended_message, message, UTC_message_sended_time))
+        conn.execute('INSERT INTO FFIP_upgrades_topic_bd (user_login, message, message_time) VALUES %s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
         return redirect(url_for('topic_upgrade_FFIP'))
@@ -268,7 +281,7 @@ def red__anonim_user_IP():
     anonim_user_ip = request.remote_addr
     last_anonim_join = register_data.strftime("%Y-%m-%d %H:%M:%S")
     conn = getConnection()
-    conn.execute('INSERT INTO anonim_users_IP (ip_adress , time) VALUES (?,?)',(anonim_user_ip,last_anonim_join))
+    conn.execute('INSERT INTO anonim_users_IP (ip_adress , time) VALUES (%s,%s)',(anonim_user_ip,last_anonim_join))
     conn.commit() 
     conn.close()
     return anonim_user_ip 
@@ -280,21 +293,20 @@ def red__anonim_user_IP():
 
 #Відстежування залогіненог користувача
 @app.route('/register_ip', methods=['POST'])
-def red_user_IP():
-    register_data = dt.datetime.utcnow()
+def red_logined_user_IP():
+    logined_user_data = dt.datetime.utcnow()
     user_ip = request.remote_addr
-    last_user_join = register_data.strftime("%Y-%m-%d %H:%M:%S")
-    user_login2 = session['login']
+    logined_user_data_formated = logined_user_data.strftime("%Y-%m-%d %H:%M:%S")
+    user_login = session['login']
     conn = getConnection()
     try:
-        conn.execute('INSERT INTO logined_user (login, user_ip , UTC_data_time) VALUES (?,?,?)',(user_login,user_ip,last_user_join))
+        conn.execute('INSERT INTO logined_user (user_login, user_logined_ip , user_logined_utc_data) VALUES (%s,%s,%s)',(user_login,user_ip,logined_user_data_formated))
     except: 
-        conn.execute('INSERT INTO logined_user (login, user_ip , UTC_data_time) VALUES (?,?,?)',(user_login2,user_ip,last_user_join))
+        conn.execute('INSERT INTO logined_user (user_login, user_logined_ip , user_logined_utc_data) VALUES (%s,%s,%s)',(user_login,user_ip,logined_user_data_formated))
     conn.commit() 
     conn.close()
     return user_ip 
-
-
+#Переробити логіку, зробити нову таблицю та обєднати їх через IP
 
 
 
