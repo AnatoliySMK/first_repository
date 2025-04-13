@@ -1,6 +1,6 @@
 from flask import *
 import psycopg2
-import datetime as dt
+from datetime import datetime, timezone
 import psycopg2.extras
 
 
@@ -52,7 +52,7 @@ def login():
             flash('НЕВІРНИЙ ЛОГІН АБО ПАРОЛЬ')
             return redirect(url_for('login'))
 
-
+    #Добавить відстеження
     
     return render_template('login.html')#відображення html шаблону
 
@@ -80,7 +80,7 @@ def signup():       #Функція для входу (Реєстрація)
             flash('Логін вже зайнятий :3')
             conn.close()
             return redirect(url_for('signup'))
-        register_data = dt.datetime.utcnow()
+        register_data = datetime.now(timezone.utc)
         UTC_reg_data = register_data.strftime("%Y-%m-%d %H:%M:%S")
         user_ip = request.remote_addr
         cursor.execute(
@@ -95,16 +95,9 @@ def signup():       #Функція для входу (Реєстрація)
 
 
 
-
-
 @app.route('/main_f', methods = ['GET','POST'])
 def main_f():
     return render_template('main_f.html')
-
-
-
-
-
 
 
 
@@ -118,43 +111,53 @@ def topic_sport():
     conn = make_connection()
     cursor = conn.cursor()
     # Об'єднаний запит для отримання всіх даних
-    query = """
-        SELECT message, message_id, message_time, user_login
-        FROM sport_topic_bd
-    """
-    result = conn.execute(query).fetchall()
+    query = cursor.execute('SELECT user_message_id, user_message, user_message_utc_time, user_login FROM sport_topic_bd')
+    query = cursor.fetchall()
 
     # Створюємо список словників для зберігання даних
     messages = []
-    for row in result:
+    for row in query:
         messages.append({
-            'message': row[0],
-            'message_id': row[1],
-            'message_time': row[2],
+            'user_message_id': row[0],
+            'user_message': row[1],
+            'user_message_utc_time': row[2],
             'user_login': row[3]
         })
+    print(messages)
     conn.commit() 
     conn.close()
     
     return render_template('topic_sport.html', Messages = messages)
 
-
 #Message to sport db
 @app.route('/sended_message_to_sport', methods = ['POST'])
 def sended_message_to_sport():
     if request.method == 'POST':
-        message = request.form['message_input']
+        #Збереження отриманого повідомлення з шаблону в змінну
+        #Не залежно від того що метод POST ми можемо викликати get(), (воно не залежить один від одного)
+        message = request.form.get('message_input')
+        if not message:
+            return "Помилка: повідомлення не надійшло", 400
+        
+        #Реалізація методу відстежування людини, що надіслала повідомлення
         try:
+            #Для залогінених юзерів
             user_sended_message = session['login']
         except:
+            #Для анонімних юзерів (потрібно змінити на анонімний профіль замість IP)
             user_sended_message = request.remote_addr
-        message_sended_time = dt.datetime.utcnow()
+        message_sended_time = datetime.now(timezone.utc)
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
-        conn = getConnection()
-        conn.execute('INSERT INTO sport_topic_bd (user_login, message, message_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
+
+        conn = make_connection()
+        cursor = conn.cursor()
+        #Збереження данних в таблицю
+        cursor.execute('INSERT INTO sport_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
+    
         return redirect(url_for('topic_sport'))
+
 
 
 
@@ -162,47 +165,55 @@ def sended_message_to_sport():
 #Games Topic
 @app.route('/topic_games' , methods = ['GET','POST'])
 def topic_games():
-    
-    conn = getConnection()
+    conn = make_connection()
+    cursor = conn.cursor()
     # Об'єднаний запит для отримання всіх даних
-    query = """
-        SELECT message, message_id, message_time, user_login
-        FROM game_topic_bd
-    """
-    result = conn.execute(query).fetchall()
+    query = cursor.execute('SELECT user_message_id, user_message, user_message_utc_time, user_login FROM games_topic_bd')
+    query = cursor.fetchall()
 
     # Створюємо список словників для зберігання даних
     messages = []
-    for row in result:
+    for row in query:
         messages.append({
-            'message': row[0],
-            'message_id': row[1],
-            'message_time': row[2],
+            'user_message_id': row[0],
+            'user_message': row[1],
+            'user_message_utc_time': row[2],
             'user_login': row[3]
         })
+    print(messages)
     conn.commit() 
     conn.close()
     
     return render_template('topic_games.html', Messages = messages)
 
-
 #Message to game db
 @app.route('/sended_message_to_games', methods = ['POST'])
 def sended_message_to_games():
     if request.method == 'POST':
-        message = request.form['message_input']
+        #Збереження отриманого повідомлення з шаблону в змінну
+        #Не залежно від того що метод POST ми можемо викликати get(), (воно не залежить один від одного)
+        message = request.form.get('message_input')
+        if not message:
+            return "Помилка: повідомлення не надійшло", 400
+        
+        #Реалізація методу відстежування людини, що надіслала повідомлення
         try:
+            #Для залогінених юзерів
             user_sended_message = session['login']
         except:
+            #Для анонімних юзерів (потрібно змінити на анонімний профіль замість IP)
             user_sended_message = request.remote_addr
-        message_sended_time = dt.datetime.utcnow()
+        message_sended_time = datetime.now(timezone.utc)
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
-        conn = getConnection()
-        conn.execute('INSERT INTO game_topic_bd (user_login, message, message_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
+
+        conn = make_connection()
+        cursor = conn.cursor()
+        #Збереження данних в таблицю
+        cursor.execute('INSERT INTO games_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
+    
         return redirect(url_for('topic_games'))
-
 
 
 
@@ -211,45 +222,53 @@ def sended_message_to_games():
 #FFIP ubrades Topic
 @app.route('/topic_upgrade_FFIP' , methods = ['GET','POST'])
 def topic_upgrade_FFIP():
-    
-    conn = getConnection()
+    conn = make_connection()
+    cursor = conn.cursor()
     # Об'єднаний запит для отримання всіх даних
-    query = """
-        SELECT message, message_id, message_time, user_login
-        FROM FFIP_upgrades_topic_bd
-    """
-    result = conn.execute(query).fetchall()
+    query = cursor.execute('SELECT user_message_id, user_message, user_message_utc_time, user_login FROM FFIP_upgrades_topic_bd')
+    query = cursor.fetchall()
 
     # Створюємо список словників для зберігання даних
     messages = []
-    for row in result:
+    for row in query:
         messages.append({
-            'message': row[0],
-            'message_id': row[1],
-            'message_time': row[2],
+            'user_message_id': row[0],
+            'user_message': row[1],
+            'user_message_utc_time': row[2],
             'user_login': row[3]
         })
+    print(messages)
     conn.commit() 
     conn.close()
     
     return render_template('topic_upgrade_FFIP.html', Messages = messages)
 
-
 #Message to FFIP ubrades db
 @app.route('/sended_message_to_upgrade_FFIP', methods = ['POST'])
 def sended_message_to_upgrade_FFIP():
     if request.method == 'POST':
-        message = request.form['message_input']
+        #Збереження отриманого повідомлення з шаблону в змінну
+        #Не залежно від того що метод POST ми можемо викликати get(), (воно не залежить один від одного)
+        message = request.form.get('message_input')
+        if not message:
+            return "Помилка: повідомлення не надійшло", 400
+        #Реалізація методу відстежування людини, що надіслала повідомлення
         try:
+            #Для залогінених юзерів
             user_sended_message = session['login']
         except:
+            #Для анонімних юзерів (потрібно змінити на анонімний профіль замість IP)
             user_sended_message = request.remote_addr
-        message_sended_time = dt.datetime.utcnow()
+        message_sended_time = datetime.now(timezone.utc)
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
-        conn = getConnection()
-        conn.execute('INSERT INTO FFIP_upgrades_topic_bd (user_login, message, message_time) VALUES %s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
+
+        conn = make_connection()
+        cursor = conn.cursor()
+        #Збереження данних в таблицю
+        cursor.execute('INSERT INTO FFIP_upgrades_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
+    
         return redirect(url_for('topic_upgrade_FFIP'))
 
 
@@ -273,11 +292,11 @@ def logout():
 
     
 
-
+'''
 #Відстежування анонімного користувача
 @app.route('/register_anonim_ip', methods=['POST'])
 def red__anonim_user_IP():
-    register_data = dt.datetime.utcnow()
+    register_data = datetime.utcnow()
     anonim_user_ip = request.remote_addr
     last_anonim_join = register_data.strftime("%Y-%m-%d %H:%M:%S")
     conn = getConnection()
@@ -294,7 +313,7 @@ def red__anonim_user_IP():
 #Відстежування залогіненог користувача
 @app.route('/register_ip', methods=['POST'])
 def red_logined_user_IP():
-    logined_user_data = dt.datetime.utcnow()
+    logined_user_data = datetime.utcnow()
     user_ip = request.remote_addr
     logined_user_data_formated = logined_user_data.strftime("%Y-%m-%d %H:%M:%S")
     user_login = session['login']
@@ -307,7 +326,7 @@ def red_logined_user_IP():
     conn.close()
     return user_ip 
 #Переробити логіку, зробити нову таблицю та обєднати їх через IP
-
+'''
 
 
 

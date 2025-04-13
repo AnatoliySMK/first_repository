@@ -16,11 +16,11 @@
 
 
     <main>
-        <form method="POST", action="sended_message_to_upgrade_FFIP">
+        <form method="POST" action="/sended_message_to_upgrade_FFIP">
             <ul>
             {% for message in Messages %}
             <li>
-                <b>{{ message.user_login }}</b>: {{ message.message }} ({{ message.message_time }})
+                <b>{{ message.user_login }}</b>: {{ message.user_message }} ({{ message.user_message_utc_time }})
             </li>
             {% endfor %}
             </ul>
