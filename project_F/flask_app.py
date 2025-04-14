@@ -17,7 +17,24 @@ def make_connection():
         dbname = "forum_database",
         port = 5432)
 
-
+#Функція відстежування
+def follow(topic_name,UTC_message_sended_time, user_sended_message, message):
+    user_sended_message_ip = request.remote_addr
+    try:
+        conn = make_connection()
+        cursor = conn.cursor()            
+        if 'login' in session:
+            cursor.execute('INSERT INTO user_follow (user_logined_ip, user_login, user_logined_utc_data, user_done, topic_name, user_message) VALUES (%s,%s,%s,%s,%s,%s);',(user_sended_message_ip, user_sended_message, UTC_message_sended_time, 'send_message', topic_name ,message))
+        else:
+            cursor.execute('INSERT INTO user_follow (user_logined_ip, user_login, user_logined_utc_data, user_done, topic_name, user_message) VALUES (%s,%s,%s,%s,%s,%s);',(user_sended_message_ip, user_sended_message, UTC_message_sended_time,'send_message', topic_name ,message))
+        conn.commit() #Зберігаємо базу данних
+    except Exception as e:
+        print(f'Помилка при записі в БД: {e}')
+        return "Сталася помилка при збереженні", 500
+    finally:
+        cursor.close()
+        conn.close()
+    return '1'
 
 
 #Створення сторінки профіль
@@ -123,7 +140,6 @@ def topic_sport():
             'user_message_utc_time': row[2],
             'user_login': row[3]
         })
-    print(messages)
     conn.commit() 
     conn.close()
     
@@ -145,7 +161,7 @@ def sended_message_to_sport():
             user_sended_message = session['login']
         except:
             #Для анонімних юзерів (потрібно змінити на анонімний профіль замість IP)
-            user_sended_message = request.remote_addr
+            user_sended_message = 'Anonim'
         message_sended_time = datetime.now(timezone.utc)
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -154,9 +170,10 @@ def sended_message_to_sport():
         #Збереження данних в таблицю
         cursor.execute('INSERT INTO sport_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
-        conn.close()    
-    
-        return redirect(url_for('topic_sport'))
+        conn.close()
+        topic_name = 'topic_sport'  
+        follow(topic_name,UTC_message_sended_time, user_sended_message, message)
+        return redirect(url_for(f'{topic_name}'))
 
 
 
@@ -180,7 +197,6 @@ def topic_games():
             'user_message_utc_time': row[2],
             'user_login': row[3]
         })
-    print(messages)
     conn.commit() 
     conn.close()
     
@@ -191,7 +207,7 @@ def topic_games():
 def sended_message_to_games():
     if request.method == 'POST':
         #Збереження отриманого повідомлення з шаблону в змінну
-        #Не залежно від того що метод POST ми можемо викликати get(), (воно не залежить один від одного)
+        #Не залежно від того що метод POST ми можемо викликати get(), точніше це буде правильний вид призову самого методу
         message = request.form.get('message_input')
         if not message:
             return "Помилка: повідомлення не надійшло", 400
@@ -202,9 +218,10 @@ def sended_message_to_games():
             user_sended_message = session['login']
         except:
             #Для анонімних юзерів (потрібно змінити на анонімний профіль замість IP)
-            user_sended_message = request.remote_addr
+            user_sended_message = 'Anonim'
         message_sended_time = datetime.now(timezone.utc)
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
+        topic_name = 'topic_games'
 
         conn = make_connection()
         cursor = conn.cursor()
@@ -212,8 +229,8 @@ def sended_message_to_games():
         cursor.execute('INSERT INTO games_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
         conn.commit() #Зберігаємо базу данних
         conn.close()    
-    
-        return redirect(url_for('topic_games'))
+        follow(topic_name,UTC_message_sended_time, user_sended_message, message)
+        return redirect(url_for(f'{topic_name}'))
 
 
 
@@ -237,7 +254,6 @@ def topic_upgrade_FFIP():
             'user_message_utc_time': row[2],
             'user_login': row[3]
         })
-    print(messages)
     conn.commit() 
     conn.close()
     
@@ -258,24 +274,22 @@ def sended_message_to_upgrade_FFIP():
             user_sended_message = session['login']
         except:
             #Для анонімних юзерів (потрібно змінити на анонімний профіль замість IP)
-            user_sended_message = request.remote_addr
+            user_sended_message = 'Anonim'
         message_sended_time = datetime.now(timezone.utc)
         UTC_message_sended_time = message_sended_time.strftime("%Y-%m-%d %H:%M:%S")
+        topic_name = 'topic_upgrade_FFIP'
 
         conn = make_connection()
         cursor = conn.cursor()
-        #Збереження данних в таблицю
-        cursor.execute('INSERT INTO FFIP_upgrades_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s)', (user_sended_message, message, UTC_message_sended_time))
-        conn.commit() #Зберігаємо базу данних
-        conn.close()    
+        cursor.execute('INSERT INTO ffip_upgrades_topic_bd (user_login, user_message, user_message_utc_time) VALUES (%s, %s, %s);', (user_sended_message, message, UTC_message_sended_time))
+        conn.commit()
+        conn.close()
+        follow(topic_name,UTC_message_sended_time, user_sended_message, message)
+    return redirect(url_for(f'{topic_name}'))
+
+
+
     
-        return redirect(url_for('topic_upgrade_FFIP'))
-
-
-
-
-
-
 
 
 
@@ -291,43 +305,6 @@ def logout():
 
 
     
-
-'''
-#Відстежування анонімного користувача
-@app.route('/register_anonim_ip', methods=['POST'])
-def red__anonim_user_IP():
-    register_data = datetime.utcnow()
-    anonim_user_ip = request.remote_addr
-    last_anonim_join = register_data.strftime("%Y-%m-%d %H:%M:%S")
-    conn = getConnection()
-    conn.execute('INSERT INTO anonim_users_IP (ip_adress , time) VALUES (%s,%s)',(anonim_user_ip,last_anonim_join))
-    conn.commit() 
-    conn.close()
-    return anonim_user_ip 
-
-
-
-
-
-
-#Відстежування залогіненог користувача
-@app.route('/register_ip', methods=['POST'])
-def red_logined_user_IP():
-    logined_user_data = datetime.utcnow()
-    user_ip = request.remote_addr
-    logined_user_data_formated = logined_user_data.strftime("%Y-%m-%d %H:%M:%S")
-    user_login = session['login']
-    conn = getConnection()
-    try:
-        conn.execute('INSERT INTO logined_user (user_login, user_logined_ip , user_logined_utc_data) VALUES (%s,%s,%s)',(user_login,user_ip,logined_user_data_formated))
-    except: 
-        conn.execute('INSERT INTO logined_user (user_login, user_logined_ip , user_logined_utc_data) VALUES (%s,%s,%s)',(user_login,user_ip,logined_user_data_formated))
-    conn.commit() 
-    conn.close()
-    return user_ip 
-#Переробити логіку, зробити нову таблицю та обєднати їх через IP
-'''
-
 
 
 if __name__ == "__main__":

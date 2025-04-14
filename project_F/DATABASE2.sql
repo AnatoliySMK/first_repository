@@ -8,14 +8,19 @@ CREATE TABLE IF NOT EXISTS Register_user_data
 	PRIMARY KEY(user_id)
 )
 ;
-CREATE TABLE IF NOT EXISTS logined_user_follow
+CREATE TABLE IF NOT EXISTS user_follow
 (
     user_logined_id SERIAL NOT NULL,
     user_logined_ip inet NOT NULL,
     user_login varchar(50) NOT NULL,
 	user_logined_utc_data VARCHAR(20) NOT NULL,
-    PRIMARY KEY (user_logined_id)
+	user_done VARCHAR NOT NULL,
+	topic_name VARCHAR NOT NULL,
+	user_message VARCHAR NOT NULL,
+	PRIMARY KEY (user_logined_id)
 );
+
+
 CREATE TABLE IF NOT EXISTS sport_topic_bd
 (
 	user_message_id SERIAL NOT NULL,
